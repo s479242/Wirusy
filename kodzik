@@ -1,0 +1,40 @@
+from Bio import SeqIO
+
+def extract_polymerase_genes(record):
+    """
+    Extract polymerase genes from a given SeqRecord object.
+    """
+    return [
+        {
+            "gene": feature.qualifiers.get("gene", ["Unknown"])[0],
+            "product": feature.qualifiers["product"][0]
+        }
+        for feature in record.features
+        if feature.type == "CDS" and "product" in feature.qualifiers
+        and "polymerase" in feature.qualifiers["product"][0].lower()
+    ]
+
+def find_polymerase_genes_from_file(file_path, file_format):
+    """
+    Find all polymerase genes in a given file.
+    """
+    with open(file_path, "r") as file:
+        return [
+            gene_info
+            for record in SeqIO.parse(file, file_format)
+            for gene_info in extract_polymerase_genes(record)
+        ]
+
+prokka_file = "C:/dane/moja_prokka_prokka.gbk"
+bakta_file = "C:/dane/moja_bakta.gbff"
+
+prokka_polymerases = find_polymerase_genes_from_file(prokka_file, "genbank")
+bakta_polymerases = find_polymerase_genes_from_file(bakta_file, "genbank")
+
+def print_genes(title, genes):
+    print(f"\n{title}")
+    for gene in genes:
+        print(f"Gene: {gene['gene']}, Product: {gene['product']}")
+
+print_genes("Geny polimerazy znalezione w Prokka:", prokka_polymerases)
+print_genes("Geny polimerazy znalezione w Bakta:", bakta_polymerases)
